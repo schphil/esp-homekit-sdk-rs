@@ -1,0 +1,18 @@
+[package]
+name = "esp-homekit-sdk-rs"
+version = "0.1.0"
+authors = ["Philipp Scheff <philippscheff@me.com>"]
+edition = "2018"
+
+[features]
+default = ["std"]
+
+std = ["esp-idf-sys/std"]
+
+[dependencies]
+esp-idf-sys = "0.19.0"
+
+[build-dependencies]
+anyhow = "1"
+embuild = "0.23"
+walkdir = "2.3.2"
