@@ -25,7 +25,13 @@ fn main() -> Result<()> {
         })
         .resolve(true)?;
 
-    let mut builder = project::Builder::new(PathBuf::from(env::var("OUT_DIR")?).join("esp-idf"));
+    let mut builder =
+        project::Builder::new(PathBuf::from(env::var("OUT_DIR")?).join("esp-homekit-sdk"));
+
+    builder
+        .enable_scons_dump()
+        .enable_c_entry_points()
+        .options(build::env_options_iter("ESP_IDF_SYS_PIO_CONF")?);
 
     let project_path = builder.generate(&resolution)?;
 
@@ -41,12 +47,15 @@ fn main() -> Result<()> {
 
     let pio_scons_vars = project::SconsVariables::from_dump(&project_path)?;
 
+    embuild::kconfig::CfgArgs::output_propagated("ESP_IDF")?;
+    embuild::build::LinkArgs::output_propagated("ESP_IDF")?;
+
     let header = PathBuf::from("src").join("include").join("bindings.h");
 
     cargo::track_file(&header);
 
     let d = "esp-homekit-sdk";
-    let mut include = Vec::new();
+    let mut include = vec!["esp-homekit-sdk/examples/common/app_wifi".to_string()];
 
     for entry in WalkDir::new(d).into_iter().filter_map(|e| e.ok()) {
         if entry.path().ends_with("include") {
@@ -54,6 +63,8 @@ fn main() -> Result<()> {
         }
     }
 
+    println!("{:?}", include);
+    println!("hallo");
     bindgen::run(
         bindgen::Factory::from_scons_vars(&pio_scons_vars)?
             .builder()?
