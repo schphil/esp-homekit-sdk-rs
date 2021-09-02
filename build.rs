@@ -26,7 +26,7 @@ fn main() -> Result<()> {
         .resolve(true)?;
 
     let mut builder =
-        project::Builder::new(PathBuf::from(env::var("OUT_DIR")?).join("esp-homekit-sdk"));
+        project::Builder::new(PathBuf::from(env::var("OUT_DIR")?).join("esp-homekit-sdk-sys"));
 
     builder
         .enable_scons_dump()
@@ -37,8 +37,7 @@ fn main() -> Result<()> {
 
     pio.exec_with_args(&[
         OsStr::new("lib"),
-        OsStr::new("--storage-dir"),
-        OsStr::new(&PathBuf::from(".")),
+        OsStr::new("--global"),
         OsStr::new("install"),
         OsStr::new("esp-homekit-sdk"),
     ])?;
@@ -47,24 +46,48 @@ fn main() -> Result<()> {
 
     let pio_scons_vars = project::SconsVariables::from_dump(&project_path)?;
 
-    embuild::kconfig::CfgArgs::output_propagated("ESP_IDF")?;
-    embuild::build::LinkArgs::output_propagated("ESP_IDF")?;
+    build::LinkArgsBuilder::try_from(&pio_scons_vars)?
+        .build()
+        .propagate();
+
+    build::CInclArgs::try_from(&pio_scons_vars)?.propagate();
+
+    let cfg_args = kconfig::CfgArgs::try_from(
+        pio_scons_vars
+            .project_dir
+            .join(if pio_scons_vars.release_build {
+                "sdkconfig.release"
+            } else {
+                "sdkconfig.debug"
+            })
+            .as_path(),
+    )?;
+
+    cfg_args.propagate("ESP_IDF");
+    cfg_args.output("ESP_IDF");
 
     let header = PathBuf::from("src").join("include").join("bindings.h");
 
     cargo::track_file(&header);
 
-    let d = "esp-homekit-sdk";
-    let mut include = vec!["esp-homekit-sdk/examples/common/app_wifi".to_string()];
+    let d = PathBuf::from(env::var("HOME")?)
+        .join(".platformio/lib/esp-homekit-sdk/components")
+        .display()
+        .to_string();
+    let mut include = vec![format!(
+        "-I{}",
+        PathBuf::from(env::var("HOME")?)
+            .join(".platformio/lib/esp-homekit-sdk/examples/common/app_wifi")
+            .display()
+            .to_string()
+    )];
 
     for entry in WalkDir::new(d).into_iter().filter_map(|e| e.ok()) {
         if entry.path().ends_with("include") {
-            include.push(entry.path().display().to_string());
+            include.push(format!("-I{}", entry.path().display().to_string()));
         }
     }
 
-    println!("{:?}", include);
-    println!("hallo");
     bindgen::run(
         bindgen::Factory::from_scons_vars(&pio_scons_vars)?
             .builder()?
