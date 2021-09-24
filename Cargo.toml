@@ -3,16 +3,19 @@ name = "esp-homekit-sdk-rs"
 version = "0.1.0"
 authors = ["Philipp Scheff <philippscheff@me.com>"]
 edition = "2018"
+links = "esp_homekit_sdk"
 
 [features]
 default = ["std"]
 
-std = ["esp-idf-sys/std"]
+std = ["embedded-svc/std"]
 
 [dependencies]
-esp-idf-sys = "0.19.0"
+embedded-svc = "0.8.3"
 
 [build-dependencies]
 anyhow = "1"
+dotenv = "0.15"
 embuild = "0.23"
 walkdir = "2.3.2"
+

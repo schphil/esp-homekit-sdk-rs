@@ -18,3 +18,10 @@
 #include "iot_button.h"
 
 #include "app_wifi.h"
+#include "app_hap_setup_payload.h"
+#include "qrcode.h"
+
+#include "freertos/FreeRTOS.h"
+#include "freertos/FreeRTOSConfig.h"
+#include "freertos/task.h"
+#include "freertos/queue.h"
