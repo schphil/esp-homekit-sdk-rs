@@ -27,9 +27,9 @@ fn main() -> Result<()> {
 
     let mut builder =
         project::Builder::new(PathBuf::from(env::var("OUT_DIR")?).join("esp-homekit-sdk"));
-    
+
     dotenv::var("ESP_IDF_SYS_PIO_CONF_HOMEKIT_0")?;
-    
+
     builder
         .enable_scons_dump()
         .enable_c_entry_points()
@@ -37,11 +37,6 @@ fn main() -> Result<()> {
         .files(build::tracked_env_globs_iter("ESP_IDF_SYS_GLOB")?);
 
     let project_path = builder.generate(&resolution)?;
-
-    let pio_lib = PathBuf::from(env::var("OUT_DIR")?)
-        .join("esp-homekit-sdk")
-        .display()
-        .to_string();
 
     pio.exec_with_args(&[
         OsStr::new("lib"),
@@ -77,35 +72,30 @@ fn main() -> Result<()> {
 
     cargo::track_file(&header);
 
-    let d = PathBuf::from(env::var("HOME")?)
-        .join(".platformio/lib/esp-homekit-sdk/components")
-        .display()
-        .to_string();
-
-    let e = PathBuf::from(env::var("HOME")?)
-        .join(".platformio/lib/esp-homekit-sdk/components")
+    let d = PathBuf::from(env::var("OUT_DIR")?)
+        .join("esp-homekit-sdk/.pio/libdeps/debug/esp-homekit-sdk/components")
         .display()
         .to_string();
 
     let mut args = vec![
         format!(
             "-I{}",
-            PathBuf::from(env::var("HOME")?)
-                .join(".platformio/lib/esp-homekit-sdk/examples/common/app_wifi")
+            PathBuf::from(env::var("OUT_DIR")?)
+                .join("esp-homekit-sdk/.pio/libdeps/debug/esp-homekit-sdk/components/common/app_wifi")
                 .display()
                 .to_string()
         ),
         format!(
             "-I{}",
-            PathBuf::from(env::var("HOME")?)
-                .join(".platformio/lib/esp-homekit-sdk/examples/common/app_hap_setup_payload")
+            PathBuf::from(env::var("OUT_DIR")?)
+                .join("esp-homekit-sdk/.pio/libdeps/debug/esp-homekit-sdk/components/common/app_hap_setup_payload")
                 .display()
                 .to_string(),
         ),
         format!(
             "-I{}",
-            PathBuf::from(env::var("HOME")?)
-                .join(".platformio/lib/esp-homekit-sdk/examples/common/qrcode/include")
+            PathBuf::from(env::var("OUT_DIR")?)
+                .join("esp-homekit-sdk/.pio/libdeps/debug/esp-homekit-sdk/components/common/qrcode/include")
                 .display()
                 .to_string(),
         ),
@@ -115,9 +105,6 @@ fn main() -> Result<()> {
         if entry.path().ends_with("include") {
             args.push(format!("-I{}", entry.path().display().to_string()));
         }
-    }
-
-    for entry in WalkDir::new(e).into_iter().filter_map(|e| e.ok()) {
         if entry.path().ends_with("ld") {
             args.push(format!("-L{}", entry.path().display().to_string()));
         }

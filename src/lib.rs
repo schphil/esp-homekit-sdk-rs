@@ -23,8 +23,11 @@ pub mod c_types {
 
 include!(env!("EMBUILD_GENERATED_BINDINGS_FILE"));
 
-impl QueueDefinition {
-    pub fn new() -> QueueDefinition {
-        QueueDefinition { _unused: [] }
-    }
-}
+
+pub mod accessory;
+
+pub mod hap;
+
+pub mod task;
+
+pub mod service;
